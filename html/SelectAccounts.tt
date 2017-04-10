@@ -1,0 +1,38 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Collections.Specialized" #>
+
+
+
+<form method='get'>
+<ul id='AccountsList' class='AccountsList'>
+<# 
+
+	string maxDays=QueryString.Get("maxDays");
+	string minCurrency=QueryString.Get("minCurrency");
+	string maxCurrency=QueryString.Get("maxCurrency");
+	foreach (Manager.Model.CashAccount2 account in Accounts)
+   {
+   	if(account.Inactive) continue;
+   	String check=SelectedAccounts.ContainsKey(account.Key)?"checked":"";
+   #>
+      <li> <input name='account_<#= account.Key #>' id='account_<#= account.Key #>' <#= check #> type='checkbox' value="<#= account.Key #>" /><label for='account_<#= account.Key #>'><#= account.Name #></label> </li>
+<# } // end of foreach
+#>
+</ul>
+<input type='checkbox' id='SelectAllAccounts' onclick='SelectAllCheckboxes(document.getElementById("AccountsList"),this.checked)' /><label for='SelectAllAccounts'>Select All</label><br />
+Max days: <input name='maxDays' value='<#= maxDays==null?"1":maxDays #>' size='3' /> (can be negative)<br />
+Min/max currency difference: <input name='minCurrency' value='<#= minCurrency==null?"0":minCurrency #>' size='3' />
+- <input name='maxCurrency' value='<#= maxCurrency==null?"0":maxCurrency #>' size='3' /><br />
+<input type='submit' value='Select Accounts' />
+</form>
+
+<#+
+public List<Manager.Model.CashAccount2> Accounts { get; set; }
+public Dictionary<Guid,Boolean> SelectedAccounts { get; set; }
+public NameValueCollection QueryString { get; set; }
+
+#>

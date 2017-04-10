@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{B9A6C787-D819-4DAE-B15E-1D07920DF668}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ManagerIO_Sqlite</RootNamespace>
+    <AssemblyName>ManagerIO_Sqlite</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+    <Commandlineparameters>/tmp/t.manager</Commandlineparameters>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="Mono.Data.Sqlite" />
+    <Reference Include="Manager">
+      <HintPath>libs\Manager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="NDesk.Options">
+      <HintPath>packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Model.cs" />
+    <Compile Include="WebServer.cs" />
+    <Compile Include="html\SelectAccounts.cs">
+      <DependentUpon>SelectAccounts.tt</DependentUpon>
+    </Compile>
+    <Compile Include="WebApp.cs" />
+    <Compile Include="html\ListTransactions.cs">
+      <DependentUpon>ListTransactions.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\SearchPage.cs">
+      <DependentUpon>SearchPage.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="html\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="html\SelectAccounts.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SelectAccounts.cs</LastGenOutput>
+    </None>
+    <None Include="packages.config" />
+    <None Include="html\ListTransactions.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ListTransactions.cs</LastGenOutput>
+    </None>
+    <None Include="html\SearchPage.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SearchPage.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+</Project>
