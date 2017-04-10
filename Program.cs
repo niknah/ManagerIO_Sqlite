@@ -55,11 +55,12 @@ namespace ManagerIO_Sqlite
 
 
 			model.Open ("URI=file:"+fileName);
-			WebApp webApp = new WebApp(model,"http://localhost:"+port+"/");
+			String url = "http://localhost:" + port + "/";
+			WebApp webApp = new WebApp(model,url);
 
 			try {
 				webApp.Start();
-				Console.WriteLine("A simple webserver. Press a key to quit.");
+				Console.WriteLine("Press a key to quit. Click here to visit: "+url);
 				Console.ReadKey();
 			} finally {
 				webApp.Stop();
