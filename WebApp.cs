@@ -3,6 +3,9 @@ using System.Net;
 using System.Collections.Generic;
 using Manager.Model;
 using System.Resources;
+using System.IO;
+using System.Runtime.Serialization;
+using Json;
 
 namespace ManagerIO_Sqlite
 {
@@ -48,6 +51,8 @@ namespace ManagerIO_Sqlite
 			List<CashAccount2> accounts=model.GetCashAccounts();
 			//			selectAccounts.Session["accounts"] = accounts;
 
+			Dictionary<Guid,Boolean> selectedAccounts = GetSelectedAccounts(ctx,accounts);
+			/*
 			Dictionary<Guid,Boolean> selectedAccounts = new Dictionary<Guid,Boolean>();
 			accounts.Sort((x, y) => x.Name.ToLower().CompareTo(y.Name.ToLower()));
 			const String accountPrefix = "account_";
@@ -57,7 +62,6 @@ namespace ManagerIO_Sqlite
 					selectedAccounts.Add(accountId,true);
 				}
 			}
-			/*
 			SelectAccounts selectAccounts=new SelectAccounts{
 				Accounts=accounts,SelectedAccounts=selectedAccounts,
 				QueryString=ctx.Request.QueryString
@@ -73,14 +77,8 @@ namespace ManagerIO_Sqlite
 			//List<Payment> payments = model.GetPayments();
 			List<Model.PaymentReceipt> paymentReceipts=model.FindTransfers(
 				selectedAccounts,minCurrency,maxCurrency,maxDays);
-			/*
-			ListTransactions listTransactions=new ListTransactions{
-				PaymentReceipts=paymentReceipts,
-				CashAccounts=cashAccountsHash
-			};
-			*/
 
-			SearchPage searchPage=new SearchPage{
+			SearchPaymentReceiptPage searchPage=new SearchPaymentReceiptPage{
 				PaymentReceipts=paymentReceipts,
 				CashAccounts=cashAccountsHash,
 				Accounts=accounts,SelectedAccounts=selectedAccounts,
@@ -90,25 +88,118 @@ namespace ManagerIO_Sqlite
 
 			return searchPage.TransformText();
 		}
+
+		private Dictionary<Guid,Boolean> GetSelectedAccounts(HttpListenerContext ctx,List<CashAccount2> accounts) {
+			Dictionary<Guid,Boolean> selectedAccounts = new Dictionary<Guid,Boolean>();
+			accounts.Sort((x, y) => x.Name.ToLower().CompareTo(y.Name.ToLower()));
+			const String accountPrefix = "account_";
+			foreach(string key in ctx.Request.QueryString) {
+				if(key.StartsWith(accountPrefix)) {
+					Guid accountId = Guid.Parse(key.Substring(accountPrefix.Length));
+					selectedAccounts.Add(accountId,true);
+				}
+			}
+			return selectedAccounts;
+		}
+		public string SearchTransactions(HttpListenerContext ctx) {
+			List<CashAccount2> accounts=model.GetCashAccounts();
+			Dictionary<Guid,Boolean> selectedAccounts = GetSelectedAccounts(ctx,accounts);
+			Dictionary<Guid,CashAccount2> cashAccountsHash=model.ListToDictionary<CashAccount2>(accounts);
+
+			string minDate = ctx.Request.QueryString ["minDate"];
+			string maxDate = ctx.Request.QueryString ["maxDate"];
+
+			List<object> transactions=model.FindTransactions(selectedAccounts,
+				Convert.ToDecimal(ctx.Request.QueryString["minValue"]),
+				Convert.ToDecimal(ctx.Request.QueryString["maxValue"]),
+				(minDate=="")?(DateTime?)null:Convert.ToDateTime(minDate),
+				(maxDate=="")?(DateTime?)null:Convert.ToDateTime(maxDate)
+			);
+
+			SearchTransactionsPage searchPage=new SearchTransactionsPage{
+				Transactions=transactions,
+				CashAccounts=cashAccountsHash,
+				Accounts=accounts,SelectedAccounts=selectedAccounts,
+				QueryString=ctx.Request.QueryString,
+				PathAndQuery=ctx.Request.Url.PathAndQuery
+			};
+
+			return searchPage.TransformText();
+		}
+
+
+		public byte[] GetResource(String resourceId) {
+			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+			System.IO.Stream sourceStream=System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(assembly.GetName().Name+"."+resourceId);
+			using(var memoryStream = new MemoryStream())
+			{
+				sourceStream.CopyTo(memoryStream);
+				return memoryStream.ToArray();
+			}
+		}
+		public Dictionary<String,String> GetPost(HttpListenerContext ctx) {
+			Dictionary<String,String> hash = new Dictionary<String,String>();
+			string body = new StreamReader(ctx.Request.InputStream).ReadToEnd();
+			string[] strs=body.Split(new char[1]{'&'});
+			char[] equal=new char[1]{'='};
+			foreach(string str in strs) {
+				string[] nv=str.Split(equal,2);
+				if(nv.Length != 2)
+					continue;
+				if(hash.ContainsKey(nv [0]))
+					continue;
+				hash.Add(Uri.UnescapeDataString(nv[0]),	Uri.UnescapeDataString(nv[1]));
+			}
+			return hash;
+		}
+		public byte[] DoImport(HttpListenerContext ctx) {
+			Dictionary<String,String> post=GetPost(ctx);
+			var data=Json.JsonParser.Deserialize(post ["data"]);
+			ManagerIO_Sqlite.Model.ImportResult result=model.Import(
+				Guid.Parse(post["account"]),
+				data,
+				post.ContainsKey("execute")?true:false
+			);
+			return SendJson<ManagerIO_Sqlite.Model.ImportResult>(ctx,result);
+		}
+		public string ImportPage(HttpListenerContext ctx) {
+			List<CashAccount2> accounts=model.GetCashAccounts();
+			ImportPage importPage = new ImportPage {
+				Accounts=accounts
+			};
+
+			return importPage.TransformText();
+//			return GetResource("html.Import.html");
+		}
+
+		private byte[] SendJson<T>(HttpListenerContext ctx, T obj) {
+			string json = JsonParser.Serialize<T>(obj);
+			ctx.Response.ContentType="application/json; charset=utf-8;";
+			byte[] buf= System.Text.Encoding.UTF8.GetBytes(json);
+			ctx.Response.ContentLength64 = buf.Length;
+			return buf;
+		}
+
 		public byte[] SendResponse(HttpListenerContext ctx)
 		{
-			string html;
-			/*
-			if(ctx.Request.Url.AbsolutePath.StartsWith("/public")) {
-				byte[] b;
-				ResourceReader.GetResourceData(ctx.Request.Url.AbsolutePath, "Byte", b);
-				return b;
-			} else 
-				*/
-			if(ctx.Request.Url.AbsolutePath == "/ConvertToTransfer") {
+			string html=null;
+			byte[] htmlBytes = null;
+			if(ctx.Request.Url.AbsolutePath == "/DoImport") {
+				return DoImport(ctx);
+			} else if(ctx.Request.Url.AbsolutePath == "/Import") {
+				html = ImportPage(ctx);
+			} else if(ctx.Request.Url.AbsolutePath == "/ConvertToTransfer") {
 				html= ConvertToTransfer(ctx);
+			} else if(ctx.Request.Url.AbsolutePath == "/SearchTransactions") {
+				html= SearchTransactions(ctx);
 			} else {
 				html= SendAccountsResponse(ctx);
 			}
 			ctx.Response.ContentType="text/html; charset=utf-8;";
-			byte[] buf = System.Text.Encoding.UTF8.GetBytes(html);
-			ctx.Response.ContentLength64 = buf.Length;
-			return buf;
+			if(htmlBytes==null)
+				htmlBytes = System.Text.Encoding.UTF8.GetBytes(html);
+			ctx.Response.ContentLength64 = htmlBytes.Length;
+			return htmlBytes;
 		}
 	}
 }

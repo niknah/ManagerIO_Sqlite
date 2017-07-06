@@ -6,14 +6,19 @@
 <#@ import namespace="System.Collections.Specialized" #>
 
 
+<script>
+function SelectAllCheckboxes(node,checked) {
+	var inputs=node.getElementsByTagName("input");
+	for(var i=0; i<inputs.length; ++i) {
+		var input=inputs[i];
+		input.checked=checked;
+	}
+}
+</script>
 
-<form method='get'>
 <ul id='AccountsList' class='AccountsList'>
 <# 
 
-	string maxDays=QueryString.Get("maxDays");
-	string minCurrency=QueryString.Get("minCurrency");
-	string maxCurrency=QueryString.Get("maxCurrency");
 	foreach (Manager.Model.CashAccount2 account in Accounts)
    {
    	if(account.Inactive) continue;
@@ -24,15 +29,9 @@
 #>
 </ul>
 <input type='checkbox' id='SelectAllAccounts' onclick='SelectAllCheckboxes(document.getElementById("AccountsList"),this.checked)' /><label for='SelectAllAccounts'>Select All</label><br />
-Max days: <input name='maxDays' value='<#= maxDays==null?"1":maxDays #>' size='3' /> (can be negative)<br />
-Min/max currency difference: <input name='minCurrency' value='<#= minCurrency==null?"0":minCurrency #>' size='3' />
-- <input name='maxCurrency' value='<#= maxCurrency==null?"0":maxCurrency #>' size='3' /><br />
-<input type='submit' value='Select Accounts' />
-</form>
 
 <#+
 public List<Manager.Model.CashAccount2> Accounts { get; set; }
 public Dictionary<Guid,Boolean> SelectedAccounts { get; set; }
-public NameValueCollection QueryString { get; set; }
 
 #>

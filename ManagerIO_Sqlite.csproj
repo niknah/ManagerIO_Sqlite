@@ -40,6 +40,11 @@
     <Reference Include="NDesk.Options">
       <HintPath>packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="Json">
+      <HintPath>packages\JSON.1.0.1\lib\net40\Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -49,12 +54,20 @@
     <Compile Include="html\SelectAccounts.cs">
       <DependentUpon>SelectAccounts.tt</DependentUpon>
     </Compile>
-    <Compile Include="WebApp.cs" />
+    <Compile Include="WebApp.cs">
+      <LogicalName>Import.html</LogicalName>
+    </Compile>
     <Compile Include="html\ListTransactions.cs">
       <DependentUpon>ListTransactions.tt</DependentUpon>
     </Compile>
-    <Compile Include="html\SearchPage.cs">
-      <DependentUpon>SearchPage.tt</DependentUpon>
+    <Compile Include="html\ImportPage.cs">
+      <DependentUpon>ImportPage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\SearchTransactionsPage.cs">
+      <DependentUpon>SearchTransactionsPage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\SearchPaymentReceiptPage.cs">
+      <DependentUpon>SearchPaymentReceiptPage.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -67,13 +80,25 @@
       <LastGenOutput>SelectAccounts.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
-    <None Include="html\ListTransactions.tt">
+    <None Include="html\ImportPage.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ImportPage.cs</LastGenOutput>
+    </None>
+    <None Include="html\PaymentReceiptTransactions.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ListTransactions.cs</LastGenOutput>
     </None>
-    <None Include="html\SearchPage.tt">
+    <None Include="html\SearchPaymentReceiptPage.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SearchPage.cs</LastGenOutput>
+      <LastGenOutput>SearchPaymentReceiptPage.cs</LastGenOutput>
+    </None>
+    <None Include="html\SearchTransactionsPage.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SearchTransactionsPage.cs</LastGenOutput>
+    </None>
+    <None Include="html\ListTransactions.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ListTransactions.cs</LastGenOutput>
     </None>
   </ItemGroup>
 </Project>

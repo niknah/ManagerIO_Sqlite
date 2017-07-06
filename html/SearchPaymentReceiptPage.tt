@@ -1,0 +1,29 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<form method='get'>
+
+
+<#
+	string maxDays=QueryString.Get("maxDays");
+	string minCurrency=QueryString.Get("minCurrency");
+	string maxCurrency=QueryString.Get("maxCurrency");
+#>
+
+<#@ include file="$(SolutionDir)/html/SelectAccounts.tt" #>
+
+Max days: <input name='maxDays' value='<#= maxDays==null?"1":maxDays #>' size='3' /> (can be negative)<br />
+Min/max currency difference: <input name='minCurrency' value='<#= minCurrency==null?"0":minCurrency #>' size='3' />
+- <input name='maxCurrency' value='<#= maxCurrency==null?"0":maxCurrency #>' size='3' /><br />
+<input type='submit' value='Select Accounts' />
+</form>
+
+
+<#@ include file="$(SolutionDir)/html/PaymentReceiptTransactions.tt" #>
+<#+
+public NameValueCollection QueryString { get; set; }
+
+#>

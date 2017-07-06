@@ -1,0 +1,115 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+
+
+<html>
+	<head>
+		<title></title>
+	<script>
+	function TsvToJson(tsv) {
+		var rows=[];
+		var lines=tsv.split("\n");
+		for(var l=0; l<lines.length; ++l) {
+			var cols=lines[l].split("\t");
+			for(var c=0; c<cols.length; ++c) {
+				if(cols[c][0]=='"') {
+					while(true) {
+						var v=cols[c];
+						if(v[v.length-1]=='"') {
+							cols[c]=v.substring(1,v.length-2);
+							break;
+						}
+						
+						if((c+1)<(cols.length)) {
+							cols[c]+=cols[c+1];
+							cols.splice(c+1,1);
+						} else {
+
+							if(l>=(lines.length-1)) {
+								break;
+							}
+							var moreCols=lines[++l].split("\t");
+							cols[c]+=moreCols[0];
+							moreCols.splice(0,1);
+							cols=cols.concat(moreCols);
+						}
+					}
+					continue;
+				}
+			}
+
+			var date=cols[0];
+			if(date=="") continue;
+
+			var amount=(""+cols[3]).replace(/[,\$]/g,'');
+			if(amount=="") amount="-"+(""+cols[2]).replace(/[,\$]/g,'');
+			if(amount=="") continue;
+
+			rows.push({
+				Date:date,
+				Description:cols[1],
+				Amount:amount
+			});
+		}
+console.log(rows);
+		return rows;
+	}
+	function Send(execute) {
+		var resultsDiv=document.getElementById("results");
+		var uploadData=document.getElementById("uploadData");
+		var account=document.getElementById("account");
+		var importExecute=document.getElementById("ImportExecute");
+
+		var jsonStr=JSON.stringify(TsvToJson(uploadData.value));
+
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+		    if (this.readyState == 4) {
+		    	if(this.status == 200) {
+				// Typical action to be performed when the document is ready:
+					var obj;
+					try {
+						obj=JSON.parse(xhttp.responseText);
+						importExecute.style.display=(!execute && obj.done>0)?'':'none';
+						resultsDiv.innerHTML = xhttp.responseText;
+					} catch(e) {
+						resultsDiv.innerHTML = "Error: "+xhttp.responseText;
+					}
+			    } else resultsDiv.innerHTML='Failed: '+this.status;
+			}
+		};
+
+		var val=account.options[account.selectedIndex].value;
+		xhttp.open("POST", "/DoImport", true);
+		var opts="&account="+val;
+		if(execute) opts+="&execute=1";
+		xhttp.send("data="+escape(jsonStr)+opts);
+	}
+	</script>
+	</head>
+	<body>
+	<div id='results'></div>
+	<select id='account'>
+	<#
+	foreach (Manager.Model.CashAccount2 account in Accounts)
+   {
+   	if(account.Inactive) continue;
+   #>
+      <option value="<#= account.Key #>" /><#= account.Name #></option>
+<# } // end of foreach
+#>
+Paste...<br />
+	<textarea id='uploadData' style='width: 100%; height: 50%'></textarea>
+	<br />
+	<input type='button' value='Test Import' onclick='Send()' />
+	<input type='button' id='ImportExecute' value='Do Import' onclick='Send(true)' style='display: none' />
+	</body>
+</html>
+<#+
+public List<Manager.Model.CashAccount2> Accounts { get; set; }
+
+#>

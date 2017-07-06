@@ -55,6 +55,9 @@ namespace ManagerIO_Sqlite
 		public List<CashAccount2> GetCashAccounts() {
 			return FindByType<Manager.Model.CashAccount2>();
 		}
+		public List<BalanceSheetAccount> GetBalanceSheetAccounts() {
+			return FindByType<Manager.Model.BalanceSheetAccount>();
+		}
 
 		public class PaymentReceipt
 		{
@@ -74,6 +77,163 @@ namespace ManagerIO_Sqlite
 			return dict;
 		}
 
+		private bool isSameDescription(string description1,string description2) {
+			string lower1=description1.ToLower();
+			string lower2=description2.ToLower();
+			return lower1.IndexOf(lower2)>=0 || lower2.IndexOf(lower1)>=0;
+		}
+		public Decimal totalTransactionLines(TransactionLine[] transactionLines) {
+			Decimal amount=0;
+			foreach(TransactionLine line in transactionLines) {
+				amount+=line.Amount;
+			}
+			return amount;
+		}
+		public Manager.Model.Object hasTransaction(
+			Guid account,
+			List<Payment> existingPayments,
+			List<Receipt> existingReceipts,
+			DateTime date,
+			Decimal amount,
+			String description
+		) {
+			foreach(Payment payment in existingPayments) {
+				Decimal total=totalTransactionLines(payment.Lines);
+				if(payment.CreditAccount==account &&
+					payment.Date==date && 
+					total==amount && 
+					isSameDescription(payment.Description,description)
+				) {
+					return payment;
+				}
+			}
+			foreach(Receipt receipt in existingReceipts) {
+				Decimal total=totalTransactionLines(receipt.Lines);
+				if(receipt.DebitAccount==account && 
+					receipt.Date==date && 
+					total==amount && 
+					isSameDescription(receipt.Description,description)) {
+					return receipt;
+				}
+			}
+			return null;
+		}
+
+		public class ImportResult {
+			public int exists { get; set; }
+			public int done { get; set; }
+			public int failed { get; set; }
+		}
+		public ImportResult Import(Guid account,dynamic rows,bool execute) {
+			List<Payment> existingPayments=GetPayments();
+			List<Receipt> existingReceipts=GetReceipts();
+			ImportResult importResult = new ImportResult {
+				exists=0, done=0, failed=0
+			};
+
+			List<Manager.Model.Object> newObjs = new List<Manager.Model.Object>();
+			foreach(dynamic row in rows) {
+				Decimal amount;
+				DateTime dateTime=DateTime.Now;
+				if(!Decimal.TryParse(row.Amount, out amount)
+					|| !DateTime.TryParse(row.Date,out dateTime)
+				) {
+					++importResult.failed;
+					continue;
+				}
+				String description=row.Description;
+				if(hasTransaction(account, existingPayments, existingReceipts,
+					dateTime,amount,description)!=null) {
+					++importResult.exists;
+					continue;
+				}
+				Manager.Model.Object mObj;
+				if(amount > 0) {
+					Receipt receipt = new Receipt() {
+						Date = dateTime,
+						Description = description,
+						DebitAccount=account
+					};
+					//receipt.DebitAccount;
+					//receipt.Description;
+					//Amount = 0 - amount;
+					TransactionLine line = new TransactionLine() {
+						Amount = amount
+					};
+					receipt.Lines = new TransactionLine[1] { line };
+					mObj = receipt;
+				} else {
+					Payment payment = new Payment() {
+						Date = dateTime,
+						CreditAccount=account,
+						Description = description
+					};
+					TransactionLine line = new TransactionLine() {
+						Amount = amount
+					};
+					payment.Lines = new TransactionLine[1] { line };
+					mObj = payment;
+				}
+				mObj.Key = Guid.NewGuid();
+				newObjs.Add(mObj);
+				++importResult.done;
+			}
+			PreChangeEvents();
+			if(execute) {
+				foreach(var obj in newObjs) {
+					InsertObject(obj);
+				}
+			}
+			return importResult;
+		}
+
+		public List<object> FindTransactions(
+			Dictionary<Guid,Boolean> accountGuids,
+			decimal? minValue,decimal? maxValue,
+			DateTime? minDate,DateTime? maxDate
+		) {
+			List<Receipt> receipts = GetReceipts();
+			List<Payment> payments = GetPayments();
+			List<object> transactions=new List<object>();
+
+			Func<DateTime,bool> isDateTimeOk = (DateTime dateTime) => { 
+				return 
+					(!minDate.HasValue || dateTime.CompareTo(minDate)>=0) && 
+					(!maxDate.HasValue || dateTime.CompareTo(maxDate)<=0)
+					;
+			};
+			Func<decimal,bool> isValueOk = (decimal value) => { 
+				return 
+					(!minValue.HasValue || value>=minValue.Value) && 
+					(!maxValue.HasValue || value<=maxValue.Value);
+				};
+
+			foreach(Payment payment in payments) {
+				if(!payment.CreditAccount.HasValue || !accountGuids.ContainsKey(payment.CreditAccount.Value)) {
+					continue;
+				}
+				decimal amount=totalTransactionLines(payment.Lines);
+				if(!isValueOk(amount))
+					continue;
+				if(!isDateTimeOk(payment.Date))
+					continue;
+
+				transactions.Add(payment);
+			}
+			foreach(Receipt receipt in receipts) {
+				if(!receipt.DebitAccount.HasValue || !accountGuids.ContainsKey(receipt.DebitAccount.Value)) {
+					continue;
+				}
+				decimal amount=totalTransactionLines(receipt.Lines);
+				if(!isValueOk(amount))
+					continue;
+				if(!isDateTimeOk(receipt.Date))
+					continue;
+				
+				transactions.Add(receipt);
+			}
+			return transactions;
+		}
 		public List<PaymentReceipt> FindTransfers(
 			Dictionary<Guid,Boolean> accountGuids,
 			decimal min, decimal max,
@@ -83,12 +243,6 @@ namespace ManagerIO_Sqlite
 			List<Payment> payments = GetPayments();
 			List <PaymentReceipt> paymentReceiptList= new List<PaymentReceipt>();
 			Dictionary<Guid,Boolean> done = new Dictionary<Guid,Boolean>();
-			/*
-			Dictionary<Guid,Boolean> accountsHash = new Dictionary<Guid,Boolean>();
-			foreach(Guid accountGuid in accountGuids) {
-				accountsHash.Add(accountGuid, true);
-			}
-			*/
 
 			foreach(Receipt receipt in receipts) {
 				if(!receipt.DebitAccount.HasValue || !accountGuids.ContainsKey(receipt.DebitAccount.Value)) {

@@ -1,0 +1,54 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+
+
+<form method='get' action='/ConvertToTransfer'>
+<table border='1' id="ConvertToTransfer">
+<tr>
+<th></th>
+<th>Date(from)</th>
+<th>From</th>
+<th></th>
+<th>$</th>
+<th>Date(to)</th>
+<th>To</th>
+<th></th>
+<th>$</th>
+</tr>
+<# foreach (Model.PaymentReceipt item in PaymentReceipts)
+   {
+   	Manager.Model.Payment payment=item.Payment;
+   	Manager.Model.Receipt receipt=item.Receipt;
+   	string id="paymentreceipt_"+payment.Key+"_"+receipt.Key;
+   #>
+      <tr> 
+      <td><input name='<#= id #>' id='<#= id #>' type='checkbox' value="1" /></td>
+      <td><#= String.Format("{0}", payment.Date) #></td>
+      <td><#= CashAccounts[payment.CreditAccount.Value].Name #></td>
+      <td><#= payment.Description #></td>
+      <td><#= String.Format("{0:C}", payment.Lines[0].Amount) #></td>
+      <td><#= String.Format("{0}", receipt.Date) #></td>
+      <td><#= CashAccounts[receipt.DebitAccount.Value].Name #></td>
+      <td><#= receipt.Description #></td>
+      <td><#= String.Format("{0:C}", receipt.Lines[0].Amount) #></td>
+      </tr>
+<# } // end of foreach
+#>
+</table>
+<input type='checkbox' id='SelectAllTranfers' onclick='SelectAllCheckboxes(document.getElementById("ConvertToTransfer"),this.checked)' /><label for='SelectAllTranfers'>Select All</label><br />
+<input type='hidden' name='PathAndQuery' value="<#= System.Net.WebUtility.HtmlEncode(PathAndQuery) #>" />
+<input type='submit' value='Convert to transfers' />
+</form>
+
+
+
+<#+
+public List<Model.PaymentReceipt> PaymentReceipts { get; set; }
+public Dictionary<Guid,Manager.Model.CashAccount2> CashAccounts { get; set; }
+public string PathAndQuery {get; set; }
+
+#>
