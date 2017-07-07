@@ -4,7 +4,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 
-
+<# if(Transactions.Count>0) { #>
 
 <form method='get' action='/'>
 <table border='1' id="ListTransactions">
@@ -52,6 +52,7 @@
 </table>
 </form>
 
+<# } #>
 
 <#+
 public List<object> Transactions { get; set; }

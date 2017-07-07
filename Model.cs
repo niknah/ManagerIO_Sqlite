@@ -190,7 +190,8 @@ namespace ManagerIO_Sqlite
 		public List<object> FindTransactions(
 			Dictionary<Guid,Boolean> accountGuids,
 			decimal? minValue,decimal? maxValue,
-			DateTime? minDate,DateTime? maxDate
+			DateTime? minDate,DateTime? maxDate,
+			string description
 		) {
 			List<Receipt> receipts = GetReceipts();
 			List<Payment> payments = GetPayments();
@@ -207,6 +208,13 @@ namespace ManagerIO_Sqlite
 					(!minValue.HasValue || value>=minValue.Value) && 
 					(!maxValue.HasValue || value<=maxValue.Value);
 				};
+			string descriptionLc;
+			if(description!=null) descriptionLc=description.ToLower();
+			Func<string,bool> isDescription = (string desc) => { 
+				if(description==null) return false;
+				return 
+					desc.ToLower().Contains(description);
+			};
 
 			foreach(Payment payment in payments) {
 				if(!payment.CreditAccount.HasValue || !accountGuids.ContainsKey(payment.CreditAccount.Value)) {
@@ -216,6 +224,8 @@ namespace ManagerIO_Sqlite
 				if(!isValueOk(amount))
 					continue;
 				if(!isDateTimeOk(payment.Date))
+					continue;
+				if(!isDescription(payment.Description))
 					continue;
 
 				transactions.Add(payment);
@@ -228,6 +238,8 @@ namespace ManagerIO_Sqlite
 				if(!isValueOk(amount))
 					continue;
 				if(!isDateTimeOk(receipt.Date))
+					continue;
+				if(!isDescription(receipt.Description))
 					continue;
 				
 				transactions.Add(receipt);

@@ -4,6 +4,9 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 
+
+Searches for payments and receipts in "suspense" and converts them to transfers.
+<br />
 <form method='get'>
 
 

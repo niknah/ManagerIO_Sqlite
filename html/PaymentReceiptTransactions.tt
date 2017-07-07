@@ -5,6 +5,7 @@
 <#@ import namespace="System.Collections.Generic" #>
 
 
+<# if(PaymentReceipts.Count>0) { #>
 
 <form method='get' action='/ConvertToTransfer'>
 <table border='1' id="ConvertToTransfer">
@@ -44,7 +45,7 @@
 <input type='submit' value='Convert to transfers' />
 </form>
 
-
+<# } #>
 
 <#+
 public List<Model.PaymentReceipt> PaymentReceipts { get; set; }

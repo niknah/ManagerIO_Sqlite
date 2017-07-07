@@ -59,8 +59,9 @@ namespace ManagerIO_Sqlite
 			WebApp webApp = new WebApp(model,url);
 
 			try {
-				webApp.Start();
 				Console.WriteLine("Press a key to quit. Click here to visit: "+url);
+				Console.WriteLine("Search transactions: "+url+"SearchTransactions");
+				webApp.Start();
 				Console.ReadKey();
 			} finally {
 				webApp.Stop();

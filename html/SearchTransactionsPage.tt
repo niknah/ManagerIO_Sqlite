@@ -13,13 +13,15 @@
 	string maxValue=QueryString.Get("maxValue");
 	string minDate=QueryString.Get("minDate");
 	string maxDate=QueryString.Get("maxDate");
+	string descriptionSearch=QueryString.Get("description");
 #>
 
 Min date: <input name='minDate' value='<#= minDate==null?"":minDate #>' size='8' /> yyyy-mm-dd<br />
 Max date: <input name='maxDate' value='<#= maxDate==null?"":maxDate #>' size='8' /><br />
 
 Min: $ <input name='minValue' value='<#= minValue==null?"0":minValue #>' size='8' /><br />
-Max: $ <input name='maxValue' value='<#= maxValue==null?"0":maxValue #>' size='8' /><br />
+Max: $ <input name='maxValue' value='<#= maxValue==null?"9999999":maxValue #>' size='8' /><br />
+Description: <input name='description' value='<#= descriptionSearch==null?"":descriptionSearch #>' /><br />
 <input type='submit' value='Search' />
 </form>
 

@@ -109,11 +109,13 @@ namespace ManagerIO_Sqlite
 			string minDate = ctx.Request.QueryString ["minDate"];
 			string maxDate = ctx.Request.QueryString ["maxDate"];
 
+			string maxValue=ctx.Request.QueryString ["maxValue"];
 			List<object> transactions=model.FindTransactions(selectedAccounts,
 				Convert.ToDecimal(ctx.Request.QueryString["minValue"]),
-				Convert.ToDecimal(ctx.Request.QueryString["maxValue"]),
+				Convert.ToDecimal(maxValue),
 				(minDate=="")?(DateTime?)null:Convert.ToDateTime(minDate),
-				(maxDate=="")?(DateTime?)null:Convert.ToDateTime(maxDate)
+				(maxDate=="")?(DateTime?)null:Convert.ToDateTime(maxDate),
+				ctx.Request.QueryString ["description"]
 			);
 
 			SearchTransactionsPage searchPage=new SearchTransactionsPage{

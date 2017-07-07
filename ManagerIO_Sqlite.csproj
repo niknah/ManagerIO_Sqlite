@@ -57,9 +57,6 @@
     <Compile Include="WebApp.cs">
       <LogicalName>Import.html</LogicalName>
     </Compile>
-    <Compile Include="html\ListTransactions.cs">
-      <DependentUpon>ListTransactions.tt</DependentUpon>
-    </Compile>
     <Compile Include="html\ImportPage.cs">
       <DependentUpon>ImportPage.tt</DependentUpon>
     </Compile>
@@ -68,6 +65,12 @@
     </Compile>
     <Compile Include="html\SearchPaymentReceiptPage.cs">
       <DependentUpon>SearchPaymentReceiptPage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\PaymentReceiptTransactions.cs">
+      <DependentUpon>PaymentReceiptTransactions.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\ListTransactions.cs">
+      <DependentUpon>ListTransactions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -86,7 +89,7 @@
     </None>
     <None Include="html\PaymentReceiptTransactions.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ListTransactions.cs</LastGenOutput>
+      <LastGenOutput>PaymentReceiptTransactions.cs</LastGenOutput>
     </None>
     <None Include="html\SearchPaymentReceiptPage.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
