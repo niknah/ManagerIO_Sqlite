@@ -95,7 +95,7 @@ console.log(rows);
 	<div id='results'></div>
 	<select id='account'>
 	<#
-	foreach (Manager.Model.CashAccount2 account in Accounts)
+	foreach (Manager.Model.BankAccount account in Accounts)
    {
    	if(account.Inactive) continue;
    #>
@@ -110,6 +110,6 @@ Paste...<br />
 	</body>
 </html>
 <#+
-public List<Manager.Model.CashAccount2> Accounts { get; set; }
+public List<Manager.Model.BankAccount> Accounts { get; set; }
 
 #>

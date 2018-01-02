@@ -19,7 +19,7 @@ function SelectAllCheckboxes(node,checked) {
 <ul id='AccountsList' class='AccountsList'>
 <# 
 
-	foreach (Manager.Model.CashAccount2 account in Accounts)
+	foreach (Manager.Model.BankAccount account in Accounts)
    {
    	if(account.Inactive) continue;
    	String check=SelectedAccounts.ContainsKey(account.Key)?"checked":"";
@@ -31,7 +31,7 @@ function SelectAllCheckboxes(node,checked) {
 <input type='checkbox' id='SelectAllAccounts' onclick='SelectAllCheckboxes(document.getElementById("AccountsList"),this.checked)' /><label for='SelectAllAccounts'>Select All</label><br />
 
 <#+
-public List<Manager.Model.CashAccount2> Accounts { get; set; }
+public List<Manager.Model.BankAccount> Accounts { get; set; }
 public Dictionary<Guid,Boolean> SelectedAccounts { get; set; }
 
 #>

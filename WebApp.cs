@@ -38,7 +38,7 @@ namespace ManagerIO_Sqlite
 					object payment=model.GetObject(Guid.Parse(guids[0]));
 					object receipt=model.GetObject(Guid.Parse(guids[1]));
 					model.ConvertToTransfer(new Model.PaymentReceipt{
-						Payment=payment as Payment,Receipt=receipt as Receipt
+						Payment=payment as BankPayment,Receipt=receipt as BankReceipt
 					});
 				}
 			}
@@ -48,7 +48,7 @@ namespace ManagerIO_Sqlite
 			return "";
 		}
 		public string SendAccountsResponse(HttpListenerContext ctx) {
-			List<CashAccount2> accounts=model.GetCashAccounts();
+			List<BankAccount> accounts=model.GetBankAccounts();
 			//			selectAccounts.Session["accounts"] = accounts;
 
 			Dictionary<Guid,Boolean> selectedAccounts = GetSelectedAccounts(ctx,accounts);
@@ -68,7 +68,7 @@ namespace ManagerIO_Sqlite
 			};
 			*/
 
-			Dictionary<Guid,CashAccount2> cashAccountsHash=model.ListToDictionary<CashAccount2>(accounts);
+			Dictionary<Guid,BankAccount> bankAccountsHash=model.ListToDictionary<BankAccount>(accounts);
 
 
 			Decimal minCurrency = Convert.ToDecimal(ctx.Request.QueryString.Get("minCurrency"));
@@ -80,7 +80,7 @@ namespace ManagerIO_Sqlite
 
 			SearchPaymentReceiptPage searchPage=new SearchPaymentReceiptPage{
 				PaymentReceipts=paymentReceipts,
-				CashAccounts=cashAccountsHash,
+				BankAccounts=bankAccountsHash,
 				Accounts=accounts,SelectedAccounts=selectedAccounts,
 				QueryString=ctx.Request.QueryString,
 				PathAndQuery=ctx.Request.Url.PathAndQuery
@@ -89,7 +89,7 @@ namespace ManagerIO_Sqlite
 			return searchPage.TransformText();
 		}
 
-		private Dictionary<Guid,Boolean> GetSelectedAccounts(HttpListenerContext ctx,List<CashAccount2> accounts) {
+		private Dictionary<Guid,Boolean> GetSelectedAccounts(HttpListenerContext ctx,List<BankAccount> accounts) {
 			Dictionary<Guid,Boolean> selectedAccounts = new Dictionary<Guid,Boolean>();
 			accounts.Sort((x, y) => x.Name.ToLower().CompareTo(y.Name.ToLower()));
 			const String accountPrefix = "account_";
@@ -102,9 +102,9 @@ namespace ManagerIO_Sqlite
 			return selectedAccounts;
 		}
 		public string SearchTransactions(HttpListenerContext ctx) {
-			List<CashAccount2> accounts=model.GetCashAccounts();
+			List<BankAccount> accounts=model.GetBankAccounts();
 			Dictionary<Guid,Boolean> selectedAccounts = GetSelectedAccounts(ctx,accounts);
-			Dictionary<Guid,CashAccount2> cashAccountsHash=model.ListToDictionary<CashAccount2>(accounts);
+			Dictionary<Guid,BankAccount> bankAccountsHash=model.ListToDictionary<BankAccount>(accounts);
 
 			string minDate = ctx.Request.QueryString ["minDate"];
 			string maxDate = ctx.Request.QueryString ["maxDate"];
@@ -120,7 +120,7 @@ namespace ManagerIO_Sqlite
 
 			SearchTransactionsPage searchPage=new SearchTransactionsPage{
 				Transactions=transactions,
-				CashAccounts=cashAccountsHash,
+				BankAccounts=bankAccountsHash,
 				Accounts=accounts,SelectedAccounts=selectedAccounts,
 				QueryString=ctx.Request.QueryString,
 				PathAndQuery=ctx.Request.Url.PathAndQuery
@@ -165,7 +165,7 @@ namespace ManagerIO_Sqlite
 			return SendJson<ManagerIO_Sqlite.Model.ImportResult>(ctx,result);
 		}
 		public string ImportPage(HttpListenerContext ctx) {
-			List<CashAccount2> accounts=model.GetCashAccounts();
+			List<BankAccount> accounts=model.GetBankAccounts();
 			ImportPage importPage = new ImportPage {
 				Accounts=accounts
 			};

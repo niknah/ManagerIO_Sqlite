@@ -24,17 +24,17 @@
    decimal amount=0;
    string description="";
    	DateTime date;
-   	if(item is Manager.Model.Payment) {
-	   	Manager.Model.Payment payment=(Manager.Model.Payment)item;
+   	if(item is Manager.Model.BankPayment) {
+	   	Manager.Model.BankPayment payment=(Manager.Model.BankPayment)item;
 	  	id="transaction_"+payment.Key;
 	  	amount=payment.Lines[0].Amount;
-   		accountName=CashAccounts[payment.CreditAccount.Value].Name;
+   		accountName=BankAccounts[payment.BankAccount.Value].Name;
    		description=payment.Description;
 	   	date=payment.Date;
-   	} else if(item is Manager.Model.Receipt) {
-	   	Manager.Model.Receipt receipt=(Manager.Model.Receipt)item;
+   	} else if(item is Manager.Model.BankReceipt) {
+	   	Manager.Model.BankReceipt receipt=(Manager.Model.BankReceipt)item;
 	  	id="transaction_"+receipt.Key;
-   		accountName=CashAccounts[receipt.DebitAccount.Value].Name;
+   		accountName=BankAccounts[receipt.BankAccount.Value].Name;
 	  	amount=receipt.Lines[0].Amount;
    		description=receipt.Description;
 	   	date=receipt.Date;
@@ -56,7 +56,7 @@
 
 <#+
 public List<object> Transactions { get; set; }
-public Dictionary<Guid,Manager.Model.CashAccount2> CashAccounts { get; set; }
+public Dictionary<Guid,Manager.Model.BankAccount> BankAccounts { get; set; }
 public string PathAndQuery {get; set; }
 
 #>
