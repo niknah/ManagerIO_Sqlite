@@ -38,7 +38,7 @@ namespace ManagerIO_Sqlite
 		{
 			ThreadPool.QueueUserWorkItem((o) =>
 				{
-					Console.WriteLine("Webserver running...");
+					Console.WriteLine("Webserver running... (Press ctrl-d to exit)");
 					try
 					{
 						while (_listener.IsListening)

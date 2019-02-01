@@ -38,8 +38,8 @@ namespace ManagerIO_Sqlite
 					object payment=model.GetObject(Guid.Parse(guids[0]));
 					object receipt=model.GetObject(Guid.Parse(guids[1]));
 					model.ConvertToTransfer(new Model.PaymentReceipt{
-						Payment=payment as BankPayment,Receipt=receipt as BankReceipt
-					});
+                        Payment=payment as ReceiptOrPayment,Receipt=receipt as ReceiptOrPayment
+                    });
 				}
 			}
 			model.CloseTransaction();

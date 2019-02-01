@@ -66,9 +66,6 @@
     <Compile Include="html\SearchPaymentReceiptPage.cs">
       <DependentUpon>SearchPaymentReceiptPage.tt</DependentUpon>
     </Compile>
-    <Compile Include="html\PaymentReceiptTransactions.cs">
-      <DependentUpon>PaymentReceiptTransactions.tt</DependentUpon>
-    </Compile>
     <Compile Include="html\ListTransactions.cs">
       <DependentUpon>ListTransactions.tt</DependentUpon>
     </Compile>

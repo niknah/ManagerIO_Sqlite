@@ -24,20 +24,13 @@
    decimal amount=0;
    string description="";
    	DateTime date;
-   	if(item is Manager.Model.BankPayment) {
-	   	Manager.Model.BankPayment payment=(Manager.Model.BankPayment)item;
+   	if(item is Manager.Model.ReceiptOrPayment) {
+	   	Manager.Model.ReceiptOrPayment payment=(Manager.Model.ReceiptOrPayment)item;
 	  	id="transaction_"+payment.Key;
 	  	amount=payment.Lines[0].Amount;
    		accountName=BankAccounts[payment.BankAccount.Value].Name;
    		description=payment.Description;
-	   	date=payment.Date;
-   	} else if(item is Manager.Model.BankReceipt) {
-	   	Manager.Model.BankReceipt receipt=(Manager.Model.BankReceipt)item;
-	  	id="transaction_"+receipt.Key;
-   		accountName=BankAccounts[receipt.BankAccount.Value].Name;
-	  	amount=receipt.Lines[0].Amount;
-   		description=receipt.Description;
-	   	date=receipt.Date;
+	   	date=(DateTime)payment.Date;
    	} else continue;
    #>
       <tr> 

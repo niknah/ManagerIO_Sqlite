@@ -20,10 +20,10 @@
 <th></th>
 <th>$</th>
 </tr>
-<# foreach (Model.PaymentReceipt item in PaymentReceipts)
+<# foreach (Model.PaymentReceipts item in PaymentReceipts)
    {
-   	Manager.Model.BankPayment payment=item.Payment;
-   	Manager.Model.BankReceipt receipt=item.Receipt;
+   	Manager.Model.ReceiptOrPayment payment=item.Payment;
+   	Manager.Model.ReceiptOrPayment receipt=item.Receipt;
    	string id="paymentreceipt_"+payment.Key+"_"+receipt.Key;
    #>
       <tr> 

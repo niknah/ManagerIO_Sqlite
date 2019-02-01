@@ -46,12 +46,14 @@ namespace ManagerIO_Sqlite
 			dbcmd.Dispose();
 			return objs;
 		}
-		public List<BankPayment> GetPayments() {
-			return FindByType<BankPayment>();
+        public List<ReceiptOrPayment> GetPayments() {
+			return FindByType<ReceiptOrPayment> ();
 		}
+        /*
 		public List<BankReceipt> GetReceipts() {
 			return FindByType<BankReceipt>();
 		}
+		*/
 		public List<BankAccount> GetBankAccounts() {
 			return FindByType<Manager.Model.BankAccount>();
 		}
@@ -61,9 +63,9 @@ namespace ManagerIO_Sqlite
 
 		public class PaymentReceipt
 		{
-			public BankPayment Payment { get; set; }
-			public BankReceipt Receipt {get; set; }
-			public PaymentReceipt() { }
+            public ReceiptOrPayment Payment { get; set; }
+            public ReceiptOrPayment Receipt {get; set; }
+            public PaymentReceipt() { }
 		}
 
 		public Dictionary<Guid,Type> ListToDictionary<Type>(List<Type> list) {
@@ -91,13 +93,13 @@ namespace ManagerIO_Sqlite
 		}
 		public Manager.Model.Object hasTransaction(
 			Guid account,
-			List<BankPayment> existingPayments,
-			List<BankReceipt> existingReceipts,
+			List<ReceiptOrPayment> existingPayments,
+			//List<BankReceipt> existingReceipts,
 			DateTime date,
 			Decimal amount,
 			String description
 		) {
-			foreach(BankPayment payment in existingPayments) {
+			foreach(ReceiptOrPayment payment in existingPayments) {
 				Decimal total=totalTransactionLines(payment.Lines);
 				if(payment.BankAccount==account &&
 					payment.Date==date && 
@@ -107,6 +109,7 @@ namespace ManagerIO_Sqlite
 					return payment;
 				}
 			}
+            /*
 			foreach(BankReceipt receipt in existingReceipts) {
 				Decimal total=totalTransactionLines(receipt.Lines);
 				if(receipt.BankAccount==account && 
@@ -116,6 +119,7 @@ namespace ManagerIO_Sqlite
 					return receipt;
 				}
 			}
+			*/
 			return null;
 		}
 
@@ -125,8 +129,8 @@ namespace ManagerIO_Sqlite
 			public int failed { get; set; }
 		}
 		public ImportResult Import(Guid account,dynamic rows,bool execute) {
-			List<BankPayment> existingPayments=GetPayments();
-			List<BankReceipt> existingReceipts=GetReceipts();
+			List<ReceiptOrPayment> existingPayments=GetPayments();
+			//List<BankReceipt> existingReceipts=GetReceipts();
 			ImportResult importResult = new ImportResult {
 				exists=0, done=0, failed=0
 			};
@@ -142,12 +146,13 @@ namespace ManagerIO_Sqlite
 					continue;
 				}
 				String description=row.Description;
-				if(hasTransaction(account, existingPayments, existingReceipts,
+				if(hasTransaction(account, existingPayments, 
 					dateTime,amount,description)!=null) {
 					++importResult.exists;
 					continue;
 				}
 				Manager.Model.Object mObj;
+                /*
 				if(amount > 0) {
 					BankReceipt receipt = new BankReceipt() {
 						Date = dateTime,
@@ -163,7 +168,8 @@ namespace ManagerIO_Sqlite
 					receipt.Lines = new TransactionLine[1] { line };
 					mObj = receipt;
 				} else {
-					BankPayment payment = new BankPayment() {
+				*/
+                ReceiptOrPayment payment = new ReceiptOrPayment () {
 						Date = dateTime,
 						BankAccount=account,
 						Description = description
@@ -173,7 +179,7 @@ namespace ManagerIO_Sqlite
 					};
 					payment.Lines = new TransactionLine[1] { line };
 					mObj = payment;
-				}
+				
 				mObj.Key = Guid.NewGuid();
 				newObjs.Add(mObj);
 				++importResult.done;
@@ -193,8 +199,8 @@ namespace ManagerIO_Sqlite
 			DateTime? minDate,DateTime? maxDate,
 			string description
 		) {
-			List<BankReceipt> receipts = GetReceipts();
-			List<BankPayment> payments = GetPayments();
+			//List<BankReceipt> receipts = GetReceipts();
+			List<ReceiptOrPayment> payments = GetPayments();
 			List<object> transactions=new List<object>();
 
 			Func<DateTime,bool> isDateTimeOk = (DateTime dateTime) => { 
@@ -216,20 +222,21 @@ namespace ManagerIO_Sqlite
 					desc.ToLower().Contains(description);
 			};
 
-			foreach(BankPayment payment in payments) {
+			foreach(ReceiptOrPayment payment in payments) {
 				if(!payment.BankAccount.HasValue || !accountGuids.ContainsKey(payment.BankAccount.Value)) {
 					continue;
 				}
 				decimal amount=totalTransactionLines(payment.Lines);
 				if(!isValueOk(amount))
 					continue;
-				if(!isDateTimeOk(payment.Date))
+				if(!isDateTimeOk((DateTime)payment.Date))
 					continue;
 				if(!isDescription(payment.Description))
 					continue;
 
 				transactions.Add(payment);
 			}
+            /*
 			foreach(BankReceipt receipt in receipts) {
 				if(!receipt.BankAccount.HasValue || !accountGuids.ContainsKey(receipt.BankAccount.Value)) {
 					continue;
@@ -244,6 +251,7 @@ namespace ManagerIO_Sqlite
 				
 				transactions.Add(receipt);
 			}
+			*/
 			return transactions;
 		}
 		public List<PaymentReceipt> FindTransfers(
@@ -251,25 +259,29 @@ namespace ManagerIO_Sqlite
 			decimal min, decimal max,
 			double maxDays
 		) {
-			List<BankReceipt> receipts = GetReceipts();
-			List<BankPayment> payments = GetPayments();
+			//List<BankReceipt> receipts = GetReceipts();
+			List<ReceiptOrPayment> payments = GetPayments();
 			List <PaymentReceipt> paymentReceiptList= new List<PaymentReceipt>();
 			Dictionary<Guid,Boolean> done = new Dictionary<Guid,Boolean>();
 
-			foreach(BankReceipt receipt in receipts) {
+            foreach(ReceiptOrPayment receipt in payments) {
 				if(!receipt.BankAccount.HasValue || !accountGuids.ContainsKey(receipt.BankAccount.Value)) {
 					continue;
 				}
+                if (receipt.Type != Manager.Model.Enums.ReceiptOrPaymentType.Receipt)
+                    continue;
 				if(receipt.Lines.Length != 1)
 					continue;
 				if(receipt.Lines [0].Account != null)
 					continue;
 				Decimal receiptAmount=receipt.Lines [0].Amount;
-				foreach(BankPayment payment in payments) {
+                foreach(ReceiptOrPayment payment in payments) {
 					if(!payment.BankAccount.HasValue || !accountGuids.ContainsKey(payment.BankAccount.Value)) {
 						continue;
 					}
-					if(payment.BankAccount == receipt.BankAccount)
+                    if (payment.Type != Manager.Model.Enums.ReceiptOrPaymentType.Payment)
+                        continue;
+                    if (payment.BankAccount == receipt.BankAccount)
 						continue;
 					if(payment.Lines.Length != 1)
 						continue;
@@ -281,8 +293,10 @@ namespace ManagerIO_Sqlite
 					decimal diff=(receiptAmount - paymentAmount )/paymentAmount;
 					if(diff>max || diff<min)
 						continue;
+                    if (receipt.Date == null || payment.Date == null)
+                        continue;
 					
-					double daysDiff= (receipt.Date - payment.Date).TotalDays;
+                    double daysDiff= ((TimeSpan)(receipt.Date - payment.Date)).TotalDays;
 					if((maxDays>=0)?  
 						(daysDiff>=0 && daysDiff<=maxDays) : 
 						(daysDiff<0 && daysDiff>=maxDays)
@@ -293,7 +307,7 @@ namespace ManagerIO_Sqlite
 					}
 				}
 			}
-			paymentReceiptList.Sort((x, y) => x.Payment.Date.CompareTo(y.Payment.Date));
+            paymentReceiptList.Sort((x, y) => ((DateTime)x.Payment.Date).CompareTo(y.Payment.Date));
 			return paymentReceiptList;
 		}
 
@@ -381,7 +395,8 @@ namespace ManagerIO_Sqlite
 			transfer.DebitClearDate = paymentReceipt.Receipt.BankClearDate!=null?paymentReceipt.Receipt.BankClearDate:paymentReceipt.Receipt.Date;
 			transfer.CreditClearStatus = paymentReceipt.Payment.BankClearStatus;
 			transfer.DebitClearStatus = paymentReceipt.Receipt.BankClearStatus;
-			transfer.Date = paymentReceipt.Payment.Date;
+            //transfer.Date = paymentReceipt.Payment.Date;
+            transfer.Date = transfer.DebitClearDate;
 			transfer.Description = paymentReceipt.Payment.Description + ", " + paymentReceipt.Receipt.Description;
 
 
