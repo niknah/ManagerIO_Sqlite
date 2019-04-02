@@ -76,7 +76,7 @@ namespace ManagerIO_Sqlite
 			double maxDays = Convert.ToDouble(ctx.Request.QueryString.Get("maxDays"));
 			//List<Payment> payments = model.GetPayments();
 			List<Model.PaymentReceipt> paymentReceipts=model.FindTransfers(
-				selectedAccounts,minCurrency,maxCurrency,maxDays);
+				selectedAccounts,0.0m-minCurrency,maxCurrency,maxDays);
 
 			SearchPaymentReceiptPage searchPage=new SearchPaymentReceiptPage{
 				PaymentReceipts=paymentReceipts,

@@ -19,8 +19,8 @@ Searches for payments and receipts in "suspense" and converts them to transfers.
 <#@ include file="$(SolutionDir)/html/SelectAccounts.tt" #>
 
 Max days: <input name='maxDays' value='<#= maxDays==null?"1":maxDays #>' size='3' /> (can be negative)<br />
-Min/max currency difference: <input name='minCurrency' value='<#= minCurrency==null?"0":minCurrency #>' size='3' />
-- <input name='maxCurrency' value='<#= maxCurrency==null?"0":maxCurrency #>' size='3' /><br />
+Transfer to different currency range: min: <input name='minCurrency' value='<#= minCurrency==null?"0.0":minCurrency #>' size='3' />
+to max: <input name='maxCurrency' value='<#= maxCurrency==null?"0.0":maxCurrency #>' size='3' /><br />
 <input type='submit' value='Select Accounts' />
 </form>
 

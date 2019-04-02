@@ -20,7 +20,7 @@
 <th></th>
 <th>$</th>
 </tr>
-<# foreach (Model.PaymentReceipts item in PaymentReceipts)
+<# foreach (Model.PaymentReceipt item in PaymentReceipts)
    {
    	Manager.Model.ReceiptOrPayment payment=item.Payment;
    	Manager.Model.ReceiptOrPayment receipt=item.Receipt;
