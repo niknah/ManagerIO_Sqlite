@@ -5,7 +5,7 @@ using Manager.Model;
 using System.Resources;
 using System.IO;
 using System.Runtime.Serialization;
-using Json;
+using Newtonsoft.Json;
 
 namespace ManagerIO_Sqlite
 {
@@ -101,6 +101,7 @@ namespace ManagerIO_Sqlite
 			}
 			return selectedAccounts;
 		}
+
 		public string SearchTransactions(HttpListenerContext ctx) {
 			List<BankAccount> accounts=model.GetBankAccounts();
 			Dictionary<Guid,Boolean> selectedAccounts = GetSelectedAccounts(ctx,accounts);
@@ -118,6 +119,7 @@ namespace ManagerIO_Sqlite
 				ctx.Request.QueryString ["description"]
 			);
 
+
 			SearchTransactionsPage searchPage=new SearchTransactionsPage{
 				Transactions=transactions,
 				BankAccounts=bankAccountsHash,
@@ -130,7 +132,56 @@ namespace ManagerIO_Sqlite
 		}
 
 
-		public byte[] GetResource(String resourceId) {
+
+        public string SearchByDatePage (HttpListenerContext ctx)
+        {
+//            string startDate = ctx.Request.QueryString ["startDate"];
+//            string maxDate = ctx.Request.QueryString ["maxDate"];
+
+            List<BalanceSheetAccount> accounts = model.GetBalanceSheetAccounts ();
+            List<ProfitAndLossStatementAccount> profitLossAccounts = model.GetProfitAndLossStatementAccounts ();
+            accounts.Sort ((x, y) => x.Name.ToLower ().CompareTo (y.Name.ToLower ()));
+            profitLossAccounts.Sort ((x, y) => x.Name.ToLower ().CompareTo (y.Name.ToLower ()));
+
+            SearchByDatePage searchPage = new SearchByDatePage {
+                BalanceSheetAccounts = accounts,
+                ProfitAndLossStatementAccounts = profitLossAccounts,
+                QueryString = ctx.Request.QueryString,
+                ChartAccount = ctx.Request.QueryString.Get("chartAccount"),
+                //PathAndQuery = ctx.Request.Url.PathAndQuery
+            };
+
+            return searchPage.TransformText ();
+
+        }
+
+        public string SearchByDate (HttpListenerContext ctx)
+        {
+
+            string startDate = ctx.Request.QueryString ["startDate"];
+            string endDate = ctx.Request.QueryString ["endDate"];
+            string chartAccount = ctx.Request.QueryString ["chartAccount"];
+            bool merge = ctx.Request.QueryString ["merge"]!=null;
+            Guid chartAccountGuid = new Guid (chartAccount);
+            List<ReceiptOrPayment> found=model.FindPaymentsFromDate (DateTime.Parse(startDate), DateTime.Parse(endDate), chartAccountGuid);
+            if(merge) {
+                model.MergePayments (found);
+            }
+
+
+            return "Found: "+found.Count+". "+
+                (merge?"": (" <a target='_blank' href='"+ ctx.Request.Url.Query + "&merge=1'>merge</a><br /><br />") )  + 
+                Newtonsoft.Json.JsonConvert.SerializeObject (found);
+        }
+        public string FrontPage (HttpListenerContext ctx)
+        {
+            FrontPage frontPage = new FrontPage {
+            };
+
+            return frontPage.TransformText ();
+        }
+
+        public byte [] GetResource(String resourceId) {
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
 			System.IO.Stream sourceStream=System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(assembly.GetName().Name+"."+resourceId);
 			using(var memoryStream = new MemoryStream())
@@ -156,7 +207,7 @@ namespace ManagerIO_Sqlite
 		}
 		public byte[] DoImport(HttpListenerContext ctx) {
 			Dictionary<String,String> post=GetPost(ctx);
-			var data=Json.JsonParser.Deserialize(post ["data"]);
+			var data=Newtonsoft.Json.JsonConvert.DeserializeObject(post ["data"]);
 			ManagerIO_Sqlite.Model.ImportResult result=model.Import(
 				Guid.Parse(post["account"]),
 				data,
@@ -175,7 +226,7 @@ namespace ManagerIO_Sqlite
 		}
 
 		private byte[] SendJson<T>(HttpListenerContext ctx, T obj) {
-			string json = JsonParser.Serialize<T>(obj);
+			string json = Newtonsoft.Json.JsonConvert.SerializeObject(obj);
 			ctx.Response.ContentType="application/json; charset=utf-8;";
 			byte[] buf= System.Text.Encoding.UTF8.GetBytes(json);
 			ctx.Response.ContentLength64 = buf.Length;
@@ -194,8 +245,15 @@ namespace ManagerIO_Sqlite
 				html= ConvertToTransfer(ctx);
 			} else if(ctx.Request.Url.AbsolutePath == "/SearchTransactions") {
 				html= SearchTransactions(ctx);
-			} else {
-				html= SendAccountsResponse(ctx);
+            } else if (ctx.Request.Url.AbsolutePath == "/SearchByDatePage") {
+                html = SearchByDatePage (ctx);
+            } else if (ctx.Request.Url.AbsolutePath == "/SearchByDate") {
+                html = SearchByDate (ctx);
+
+            } else if (ctx.Request.Url.AbsolutePath == "/SearchPaymentReceiptPage") {
+                html = SendAccountsResponse (ctx);
+            } else {
+				html= FrontPage(ctx);
 			}
 			ctx.Response.ContentType="text/html; charset=utf-8;";
 			if(htmlBytes==null)

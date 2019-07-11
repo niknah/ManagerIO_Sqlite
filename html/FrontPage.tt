@@ -1,0 +1,15 @@
+﻿<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+<ul>
+<li><a href='/SearchPaymentReceiptPage'>Convert receipt/payment to transfer</a></li>
+<li><a href='/SearchTransactions'>Search transactions</a></li>
+<li><a href='/SearchByDatePage'>Merge lots into one transaction</a></li>
+
+<!--
+<li><a href=''></a></li>
+-->
+</ul>

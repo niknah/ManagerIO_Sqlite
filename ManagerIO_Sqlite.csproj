@@ -41,10 +41,11 @@
       <HintPath>packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="Json">
-      <HintPath>packages\JSON.1.0.1\lib\net40\Json.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Web" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -60,14 +61,26 @@
     <Compile Include="html\ImportPage.cs">
       <DependentUpon>ImportPage.tt</DependentUpon>
     </Compile>
-    <Compile Include="html\SearchTransactionsPage.cs">
-      <DependentUpon>SearchTransactionsPage.tt</DependentUpon>
-    </Compile>
     <Compile Include="html\SearchPaymentReceiptPage.cs">
       <DependentUpon>SearchPaymentReceiptPage.tt</DependentUpon>
     </Compile>
     <Compile Include="html\ListTransactions.cs">
       <DependentUpon>ListTransactions.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\PaymentReceiptTransactions.cs">
+      <DependentUpon>PaymentReceiptTransactions.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\SearchTransactionsPage.cs">
+      <DependentUpon>SearchTransactionsPage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\SearchByDatePage.cs">
+      <DependentUpon>SearchByDatePage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\SelectChartAccount.cs">
+      <DependentUpon>SelectChartAccount.tt</DependentUpon>
+    </Compile>
+    <Compile Include="html\FrontPage.cs">
+      <DependentUpon>FrontPage.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -99,6 +112,18 @@
     <None Include="html\ListTransactions.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>ListTransactions.cs</LastGenOutput>
+    </None>
+    <None Include="html\SearchByDatePage.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SearchByDatePage.cs</LastGenOutput>
+    </None>
+    <None Include="html\SelectChartAccount.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>SelectChartAccount.cs</LastGenOutput>
+    </None>
+    <None Include="html\FrontPage.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>FrontPage.cs</LastGenOutput>
     </None>
   </ItemGroup>
 </Project>

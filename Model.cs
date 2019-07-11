@@ -22,7 +22,8 @@ namespace ManagerIO_Sqlite
 
 
 		public List<Type> FindByType<Type>() {
-			Guid guid=Manager.Serialization.GetGuidByType(typeof(Type));
+
+            Guid guid=Manager.Serialization.GetGuidByType(typeof(Type));
 			IDbCommand dbcmd = CreateCommand();
 			dbcmd.CommandText = String.Format("select * from Objects where ContentType = '{0}'",guid.ToString());
 			IDataReader reader = dbcmd.ExecuteReader();
@@ -60,8 +61,12 @@ namespace ManagerIO_Sqlite
 		public List<BalanceSheetAccount> GetBalanceSheetAccounts() {
 			return FindByType<Manager.Model.BalanceSheetAccount>();
 		}
+        public List<ProfitAndLossStatementAccount> GetProfitAndLossStatementAccounts ()
+        {
+            return FindByType<Manager.Model.ProfitAndLossStatementAccount> ();
+        }
 
-		public class PaymentReceipt
+        public class PaymentReceipt
 		{
             public ReceiptOrPayment Payment { get; set; }
             public ReceiptOrPayment Receipt {get; set; }
@@ -406,8 +411,89 @@ namespace ManagerIO_Sqlite
 			DeleteObject(paymentReceipt.Receipt.Key);
 		}
 
-		#region Init
-		public void Open(string connectionString) {
+        public List<ReceiptOrPayment> FindPaymentsFromDate(DateTime startDate, DateTime endDate, Guid balanceSheetAccount )
+        {
+            List<ReceiptOrPayment> found = new List<ReceiptOrPayment> ();
+            List<ReceiptOrPayment> payments=GetPayments ();
+            Guid? bankAccount=null;
+            foreach(ReceiptOrPayment receiptOrPayment in payments) {
+                if (receiptOrPayment.Lines==null || receiptOrPayment.Lines.Length != 1)
+                    continue;
+                if (receiptOrPayment.BankAccount == null)
+                    continue;
+
+
+                TransactionLine transactionLine=receiptOrPayment.Lines [0];
+                if (transactionLine.Account == null || !transactionLine.Account.Value.Equals(balanceSheetAccount))
+                    continue;
+                if (receiptOrPayment.Date == null)
+                    continue;
+
+                if(receiptOrPayment.Date.Value.CompareTo (startDate) < 0 ||
+                    receiptOrPayment.Date.Value.CompareTo (endDate) > 0
+                ) {
+                    continue;
+                }
+
+                if (bankAccount == null)
+                    bankAccount = receiptOrPayment.BankAccount.Value;
+
+                if (!bankAccount.Value.Equals (receiptOrPayment.BankAccount.Value))
+                    continue;
+
+                found.Add (receiptOrPayment);
+            }
+            return found;
+        }
+        public void MergePayments (List<ReceiptOrPayment> found)
+        {
+            // add total, delete all but the latest date
+            decimal totalPayment = 0;
+            decimal totalReceipt = 0;
+            DateTime oldestPayment = new DateTime (0);
+            DateTime oldestReceipt = new DateTime (0);
+            ReceiptOrPayment oldestPaymentObj=null;
+            ReceiptOrPayment oldestReceiptObj = null;
+
+            foreach (ReceiptOrPayment receiptOrPayment in found) {
+                if (receiptOrPayment.Lines == null || receiptOrPayment.Lines.Length != 1)
+                    continue;
+                if (receiptOrPayment.Date == null)
+                    continue;
+
+                TransactionLine transactionLine=receiptOrPayment.Lines [0];
+                if(receiptOrPayment.Type==Manager.Model.Enums.ReceiptOrPaymentType.Payment) {
+                    totalPayment += transactionLine.Amount;
+                    if (oldestPayment.CompareTo (receiptOrPayment.Date.Value) < 0) {
+                        oldestPayment = receiptOrPayment.Date.Value;
+                        oldestPaymentObj = receiptOrPayment;
+                    }
+                } else if (receiptOrPayment.Type == Manager.Model.Enums.ReceiptOrPaymentType.Receipt) {
+                    totalReceipt += transactionLine.Amount;
+                    if (oldestReceipt.CompareTo (receiptOrPayment.Date.Value) < 0) {
+                        oldestReceipt = receiptOrPayment.Date.Value;
+                        oldestReceiptObj = receiptOrPayment;
+                    }
+                } else {
+                    continue;
+                }
+
+                DeleteObject (receiptOrPayment.Key);
+            }
+            if (oldestPaymentObj!=null) {
+                oldestPaymentObj.Lines [0].Amount = totalPayment;
+                InsertObject (oldestPaymentObj);
+            }
+            if (oldestReceiptObj != null) {
+                oldestReceiptObj.Lines [0].Amount = totalReceipt;
+                InsertObject (oldestReceiptObj);
+            }
+
+        }
+
+
+        #region Init
+        public void Open(string connectionString) {
 			dbcon = new SqliteConnection(connectionString);
 			dbcon.Open();
 		}
