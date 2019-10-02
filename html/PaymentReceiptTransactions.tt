@@ -11,6 +11,7 @@
 <table border='1' id="ConvertToTransfer">
 <tr>
 <th></th>
+<th>Diff</th>
 <th>Date(from)</th>
 <th>From</th>
 <th></th>
@@ -25,9 +26,19 @@
    	Manager.Model.ReceiptOrPayment payment=item.Payment;
    	Manager.Model.ReceiptOrPayment receipt=item.Receipt;
    	string id="paymentreceipt_"+payment.Key+"_"+receipt.Key;
+    double dateDiff=payment.Date.Value.Subtract(receipt.Date.Value).TotalDays;
+    string dateDiffString="";
+    if(dateDiff>0)
+        dateDiffString=String.Format("{0} days",Math.Floor(dateDiff));
+    string amountDiffString="";
+    Decimal amountDiff=(receipt.Lines[0].Amount - payment.Lines[0].Amount)/ receipt.Lines[0].Amount;
+    if(amountDiff>0)
+       amountDiffString=String.Format("{0:P0}",  amountDiff);
+    
    #>
       <tr> 
       <td><input name='<#= id #>' id='<#= id #>' type='checkbox' value="1" /></td>
+      <td><#= dateDiffString #> <#= amountDiffString  #></td>
       <td><#= String.Format("{0}", payment.Date) #></td>
       <td><#= BankAccounts[payment.BankAccount.Value].Name #></td>
       <td><#= payment.Description #></td>

@@ -33,9 +33,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="Mono.Data.Sqlite" />
-    <Reference Include="Manager">
-      <HintPath>libs\Manager.dll</HintPath>
-    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="NDesk.Options">
       <HintPath>packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
@@ -45,6 +42,9 @@
     <Reference Include="System.Web" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Manager">
+      <HintPath>libs\Manager.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
