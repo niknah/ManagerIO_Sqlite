@@ -2,8 +2,11 @@
 using Mono.Data.Sqlite;
 using System.Data;
 using Manager.Model;
+using Manager.Model.Attributes;
 using System.Collections.Generic;
 using System.Reflection;
+using ProtoBuf;
+using System.IO;
 
 namespace ManagerIO_Sqlite
 {
@@ -23,7 +26,7 @@ namespace ManagerIO_Sqlite
 
 		public List<Type> FindByType<Type>() {
 
-            Guid guid=Manager.Serialization.GetGuidByType(typeof(Type));
+            Guid guid=Manager.Model.Object.GetGuidByType(typeof(Type));
 			IDbCommand dbcmd = CreateCommand();
 			dbcmd.CommandText = String.Format("select * from Objects where ContentType = '{0}'",guid.ToString());
 			IDataReader reader = dbcmd.ExecuteReader();
@@ -36,12 +39,15 @@ namespace ManagerIO_Sqlite
 				reader.GetBytes (2,0,b,0,(int)byteSize);
 				string guidStr = reader.GetString(0);
 				string typeGuidStr = reader.GetString(1);
-				object obj=Manager.Serialization.Deserialize( Guid.Parse(typeGuidStr), b);
-				if(obj is Manager.Model.Object) {
-					((Manager.Model.Object)obj).Key=Guid.Parse(guidStr);
-				}
-				objs.Add((Type)obj);
-			}
+                //object obj=Serializer.NonGeneric.Deserialize( Guid.Parse(typeGuidStr), b);
+                using(MemoryStream memoryStream = new MemoryStream(b)) {
+                    object obj = Serializer.NonGeneric.Deserialize (typeof (Type), memoryStream);
+                    if (obj is Manager.Model.Object) {
+                        ((Manager.Model.Object)obj).Key = Guid.Parse (guidStr);
+                    }
+                    objs.Add ((Type)obj);
+                }
+            }
 			// clean up
 			reader.Dispose();
 			dbcmd.Dispose();
@@ -92,7 +98,7 @@ namespace ManagerIO_Sqlite
 		public Decimal totalTransactionLines(TransactionLine[] transactionLines) {
 			Decimal amount=0;
 			foreach(TransactionLine line in transactionLines) {
-				amount+=line.Amount;
+				amount+=line.Amount.Value;
 			}
 			return amount;
 		}
@@ -279,7 +285,7 @@ namespace ManagerIO_Sqlite
 					continue;
 				if(receipt.Lines [0].Account != null)
 					continue;
-				Decimal receiptAmount=receipt.Lines [0].Amount;
+				Decimal receiptAmount=receipt.Lines [0].Amount.Value;
                 foreach(ReceiptOrPayment payment in payments) {
 					if(!payment.BankAccount.HasValue || !accountGuids.ContainsKey(payment.BankAccount.Value)) {
 						continue;
@@ -294,7 +300,7 @@ namespace ManagerIO_Sqlite
 						continue;
 					if(done.ContainsKey(payment.Key) || done.ContainsKey(receipt.Key))
 						continue;
-					Decimal paymentAmount=payment.Lines [0].Amount;
+					Decimal paymentAmount=payment.Lines [0].Amount.Value;
 					decimal diff=(receiptAmount - paymentAmount )/paymentAmount;
 					if(diff>max || diff<min)
 						continue;
@@ -329,8 +335,12 @@ namespace ManagerIO_Sqlite
 				reader.GetBytes (2,0,b,0,(int)byteSize);
 				string guidStr = reader.GetString(0);
 				string typeGuidStr = reader.GetString(1);
-				obj=Manager.Serialization.Deserialize( Guid.Parse(typeGuidStr), b);
-				if(obj is Manager.Model.Object) {
+                //obj=Manager.Serialization.Deserialize( Guid.Parse(typeGuidStr), b);
+                using (MemoryStream memoryStream = new MemoryStream (b)) {
+
+                    obj = Serializer.NonGeneric.Deserialize (Manager.Model.Object.GetTypeByGuid (Guid.Parse (typeGuidStr)), memoryStream);
+                }
+                if (obj is Manager.Model.Object) {
 					(obj as Manager.Model.Object).Key = Guid.Parse(guidStr);
 				}
 			}
@@ -364,7 +374,12 @@ namespace ManagerIO_Sqlite
 		public void InsertObject(Manager.Model.Object obj) {
 			Guid guid=obj.Key;
 			obj.Key=Guid.Empty;
-			Tuple<Guid,Byte[]> tuple=Manager.Serialization.Serialize(obj);
+            Tuple<Guid, Byte []> tuple;
+            using (MemoryStream memoryStream = new MemoryStream ()) {
+                tuple=new Tuple<Guid, byte []> (obj.GetType ().GetCustomAttribute<GuidAttribute> ().Value, memoryStream.ToArray ());
+            }
+
+                //Tuple<Guid,Byte[]> tuple=Manager.Serialization.Serialize(obj);
 			IDbCommand dbcmd = CreateCommand();
 			dbcmd.CommandText = String.Format("insert into Objects (Key,ContentType,Content) values(@key,@type,@BIN)");
 
@@ -376,8 +391,9 @@ namespace ManagerIO_Sqlite
 			param = dbcmd.CreateParameter();
 			param.DbType = DbType.AnsiString;
 			param.ParameterName = "@type";
-			param.Value = Manager.Serialization.GetGuidByType(obj.GetType()).ToString();
-			dbcmd.Parameters.Add(param);
+            //param.Value = Manager.Serialization.GetGuidByType(obj.GetType()).ToString();
+            param.Value = Manager.Model.Object.GetGuidByType (obj.GetType ()).ToString ();
+            dbcmd.Parameters.Add(param);
 			param = dbcmd.CreateParameter();
 			param.DbType = DbType.Binary;
 			param.ParameterName = "@BIN";
@@ -394,14 +410,14 @@ namespace ManagerIO_Sqlite
 			Manager.Model.InterAccountTransfer transfer=new Manager.Model.InterAccountTransfer();
 			transfer.CreditAccount = paymentReceipt.Payment.BankAccount;
 			transfer.DebitAccount = paymentReceipt.Receipt.BankAccount;
-			transfer.CreditAmount = paymentReceipt.Payment.Lines [0].Amount;
-			transfer.DebitAmount = paymentReceipt.Receipt.Lines [0].Amount;
+			transfer.CreditAmount = paymentReceipt.Payment.Lines [0].Amount.Value;
+			transfer.DebitAmount = paymentReceipt.Receipt.Lines [0].Amount.Value;
 			transfer.CreditClearDate = paymentReceipt.Payment.BankClearDate!=null?paymentReceipt.Payment.BankClearDate:paymentReceipt.Payment.Date;
 			transfer.DebitClearDate = paymentReceipt.Receipt.BankClearDate!=null?paymentReceipt.Receipt.BankClearDate:paymentReceipt.Receipt.Date;
 			transfer.CreditClearStatus = paymentReceipt.Payment.BankClearStatus;
 			transfer.DebitClearStatus = paymentReceipt.Receipt.BankClearStatus;
             //transfer.Date = paymentReceipt.Payment.Date;
-            transfer.Date = transfer.DebitClearDate;
+            transfer.Date = transfer.DebitClearDate.Value;
 			transfer.Description = paymentReceipt.Payment.Description + ", " + paymentReceipt.Receipt.Description;
 
 
@@ -429,8 +445,8 @@ namespace ManagerIO_Sqlite
                 if (receiptOrPayment.Date == null)
                     continue;
 
-                if(receiptOrPayment.Date.Value.CompareTo (startDate) < 0 ||
-                    receiptOrPayment.Date.Value.CompareTo (endDate) > 0
+                if(receiptOrPayment.Date.CompareTo (startDate) < 0 ||
+                    receiptOrPayment.Date.CompareTo (endDate) > 0
                 ) {
                     continue;
                 }
@@ -463,15 +479,15 @@ namespace ManagerIO_Sqlite
 
                 TransactionLine transactionLine=receiptOrPayment.Lines [0];
                 if(receiptOrPayment.Type==Manager.Model.Enums.ReceiptOrPaymentType.Payment) {
-                    totalPayment += transactionLine.Amount;
-                    if (oldestPayment.CompareTo (receiptOrPayment.Date.Value) < 0) {
-                        oldestPayment = receiptOrPayment.Date.Value;
+                    totalPayment += transactionLine.Amount.Value;
+                    if (oldestPayment.CompareTo (receiptOrPayment.Date) < 0) {
+                        oldestPayment = receiptOrPayment.Date;
                         oldestPaymentObj = receiptOrPayment;
                     }
                 } else if (receiptOrPayment.Type == Manager.Model.Enums.ReceiptOrPaymentType.Receipt) {
-                    totalReceipt += transactionLine.Amount;
-                    if (oldestReceipt.CompareTo (receiptOrPayment.Date.Value) < 0) {
-                        oldestReceipt = receiptOrPayment.Date.Value;
+                    totalReceipt += transactionLine.Amount.Value;
+                    if (oldestReceipt.CompareTo (receiptOrPayment.Date) < 0) {
+                        oldestReceipt = receiptOrPayment.Date;
                         oldestReceiptObj = receiptOrPayment;
                     }
                 } else {

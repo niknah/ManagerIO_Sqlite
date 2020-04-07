@@ -26,12 +26,12 @@
    	Manager.Model.ReceiptOrPayment payment=item.Payment;
    	Manager.Model.ReceiptOrPayment receipt=item.Receipt;
    	string id="paymentreceipt_"+payment.Key+"_"+receipt.Key;
-    double dateDiff=payment.Date.Value.Subtract(receipt.Date.Value).TotalDays;
+    double dateDiff=payment.Date.Subtract(receipt.Date).TotalDays;
     string dateDiffString="";
     if(dateDiff>0)
         dateDiffString=String.Format("{0} days",Math.Floor(dateDiff));
     string amountDiffString="";
-    Decimal amountDiff=(receipt.Lines[0].Amount - payment.Lines[0].Amount)/ receipt.Lines[0].Amount;
+    Decimal amountDiff=(receipt.Lines[0].Amount.Value - payment.Lines[0].Amount.Value)/ receipt.Lines[0].Amount.Value;
     if(amountDiff>0)
        amountDiffString=String.Format("{0:P0}",  amountDiff);
     

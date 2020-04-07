@@ -46,6 +46,9 @@
     <Reference Include="Manager">
       <HintPath>libs\Manager.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>libs\protobuf-net.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

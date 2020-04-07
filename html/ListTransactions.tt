@@ -27,7 +27,7 @@
    	if(item is Manager.Model.ReceiptOrPayment) {
 	   	Manager.Model.ReceiptOrPayment payment=(Manager.Model.ReceiptOrPayment)item;
 	  	id="transaction_"+payment.Key;
-	  	amount=payment.Lines[0].Amount;
+	  	amount=payment.Lines[0].Amount.Value;
    		accountName=BankAccounts[payment.BankAccount.Value].Name;
    		description=payment.Description;
 	   	date=(DateTime)payment.Date;
