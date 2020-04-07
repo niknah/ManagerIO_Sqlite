@@ -17,3 +17,7 @@
 * Press a key when you're done.
 * To change the default port of 8080, use --port=9999
 
+
+## To update .tt files.
+
+* Touch all files that include the .tt file.  Say aaa.tt, bbb.tt includes ccc.tt.  Run touch aaa.ttt bbb.tt to update them too.  This is a problem with monodevelop.
