@@ -274,7 +274,6 @@ namespace ManagerIO_Sqlite
 			List<ReceiptOrPayment> payments = GetPayments();
 			List <PaymentReceipt> paymentReceiptList= new List<PaymentReceipt>();
 			Dictionary<Guid,Boolean> done = new Dictionary<Guid,Boolean>();
-
             foreach(ReceiptOrPayment receipt in payments) {
 				if(!receipt.BankAccount.HasValue || !accountGuids.ContainsKey(receipt.BankAccount.Value)) {
 					continue;
@@ -306,8 +305,8 @@ namespace ManagerIO_Sqlite
 						continue;
                     if (receipt.Date == null || payment.Date == null)
                         continue;
-					
-                    double daysDiff= ((TimeSpan)(receipt.Date - payment.Date)).TotalDays;
+
+                    double daysDiff = ((TimeSpan)(receipt.Date - payment.Date)).TotalDays;
 					if((maxDays>=0)?  
 						(daysDiff>=0 && daysDiff<=maxDays) : 
 						(daysDiff<0 && daysDiff>=maxDays)
@@ -374,13 +373,22 @@ namespace ManagerIO_Sqlite
 		public void InsertObject(Manager.Model.Object obj) {
 			Guid guid=obj.Key;
 			obj.Key=Guid.Empty;
+            /*
             Tuple<Guid, Byte []> tuple;
             using (MemoryStream memoryStream = new MemoryStream ()) {
                 tuple=new Tuple<Guid, byte []> (obj.GetType ().GetCustomAttribute<GuidAttribute> ().Value, memoryStream.ToArray ());
             }
+            */
 
-                //Tuple<Guid,Byte[]> tuple=Manager.Serialization.Serialize(obj);
-			IDbCommand dbcmd = CreateCommand();
+            byte [] memoryStreamBytes;
+            using (MemoryStream memoryStream = new MemoryStream ()) {
+                Serializer.NonGeneric.Serialize (memoryStream, obj );
+                memoryStreamBytes = memoryStream.ToArray ();
+            }
+
+
+            //Tuple<Guid,Byte[]> tuple=Manager.Serialization.Serialize(obj);
+            IDbCommand dbcmd = CreateCommand();
 			dbcmd.CommandText = String.Format("insert into Objects (Key,ContentType,Content) values(@key,@type,@BIN)");
 
 			IDbDataParameter param = dbcmd.CreateParameter();
@@ -397,7 +405,8 @@ namespace ManagerIO_Sqlite
 			param = dbcmd.CreateParameter();
 			param.DbType = DbType.Binary;
 			param.ParameterName = "@BIN";
-			param.Value = tuple.Item2;
+            //param.Value = tuple.Item2;
+            param.Value = memoryStreamBytes;
 			dbcmd.Parameters.Add(param);
 
 			//dbcmd.Parameters.Add("@BIN", SqlDbType.Binary, tuple.Item2.Length).Value = tuple.Item2;
@@ -407,7 +416,9 @@ namespace ManagerIO_Sqlite
 		}
 		public void ConvertToTransfer(PaymentReceipt paymentReceipt) {
 			PreChangeEvents();
-			Manager.Model.InterAccountTransfer transfer=new Manager.Model.InterAccountTransfer();
+
+
+            Manager.Model.InterAccountTransfer transfer=new Manager.Model.InterAccountTransfer();
 			transfer.CreditAccount = paymentReceipt.Payment.BankAccount;
 			transfer.DebitAccount = paymentReceipt.Receipt.BankAccount;
 			transfer.CreditAmount = paymentReceipt.Payment.Lines [0].Amount.Value;
