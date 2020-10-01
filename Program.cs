@@ -16,9 +16,10 @@ namespace ManagerIO_Sqlite
 				string.Format("_{0:yyyy-MM-dd-HHmmss}_backup.manager",lastWriteTime));
 			if(!File.Exists(backupFilename))
 				File.Copy (filename, backupFilename);
-		}
+            System.Diagnostics.Process.Start ("lzip", backupFilename);
+        }
 
-		public static void Main (string[] args)
+        public static void Main (string[] args)
 		{
 			int port=8080;
 			bool shouldShowHelp = false;

@@ -132,7 +132,6 @@ namespace ManagerIO_Sqlite
 		}
 
 
-
         public string SearchByDatePage (HttpListenerContext ctx)
         {
 //            string startDate = ctx.Request.QueryString ["startDate"];
