@@ -1,132 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{B9A6C787-D819-4DAE-B15E-1D07920DF668}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ManagerIO_Sqlite</RootNamespace>
-    <AssemblyName>ManagerIO_Sqlite</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
-    <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>/tmp/t.manager</Commandlineparameters>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <Externalconsole>true</Externalconsole>
-    <PlatformTarget>x86</PlatformTarget>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <DefaultItemExcludes>*.csproj;*.csproj.*;README.md;old/**;obj/**;obj.old/**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="Mono.Data.Sqlite" />
-    <Reference Include="System.Data" />
-    <Reference Include="NDesk.Options">
-      <HintPath>packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Web" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="Manager">
       <HintPath>libs\Manager.dll</HintPath>
     </Reference>
     <Reference Include="protobuf-net">
       <HintPath>libs\protobuf-net.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net.Core">
+      <HintPath>libs\protobuf-net.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Model.cs" />
-    <Compile Include="WebServer.cs" />
-    <Compile Include="html\SelectAccounts.cs">
-      <DependentUpon>SelectAccounts.tt</DependentUpon>
-    </Compile>
-    <Compile Include="WebApp.cs">
-      <LogicalName>Import.html</LogicalName>
-    </Compile>
-    <Compile Include="html\ImportPage.cs">
-      <DependentUpon>ImportPage.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\SearchPaymentReceiptPage.cs">
-      <DependentUpon>SearchPaymentReceiptPage.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\ListTransactions.cs">
-      <DependentUpon>ListTransactions.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\PaymentReceiptTransactions.cs">
-      <DependentUpon>PaymentReceiptTransactions.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\SearchTransactionsPage.cs">
-      <DependentUpon>SearchTransactionsPage.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\SearchByDatePage.cs">
-      <DependentUpon>SearchByDatePage.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\SelectChartAccount.cs">
-      <DependentUpon>SelectChartAccount.tt</DependentUpon>
-    </Compile>
-    <Compile Include="html\FrontPage.cs">
-      <DependentUpon>FrontPage.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="html\" />
+    <None Remove="ManagerIO_Sqlite.csproj" />
+    <None Update="html\SearchByDatePage.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>html\SearchByDatePage.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="html\SelectAccounts.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SelectAccounts.cs</LastGenOutput>
-    </None>
-    <None Include="packages.config" />
-    <None Include="html\ImportPage.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ImportPage.cs</LastGenOutput>
-    </None>
-    <None Include="html\PaymentReceiptTransactions.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>PaymentReceiptTransactions.cs</LastGenOutput>
-    </None>
-    <None Include="html\SearchPaymentReceiptPage.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SearchPaymentReceiptPage.cs</LastGenOutput>
-    </None>
-    <None Include="html\SearchTransactionsPage.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SearchTransactionsPage.cs</LastGenOutput>
-    </None>
-    <None Include="html\ListTransactions.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>ListTransactions.cs</LastGenOutput>
-    </None>
-    <None Include="html\SearchByDatePage.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SearchByDatePage.cs</LastGenOutput>
-    </None>
-    <None Include="html\SelectChartAccount.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>SelectChartAccount.cs</LastGenOutput>
-    </None>
-    <None Include="html\FrontPage.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>FrontPage.cs</LastGenOutput>
-    </None>
+    <Compile Update="html\SearchByDatePage.cs">
+      <DependentUpon>html\SearchByDatePage.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NDesk.Options" Version="0.2.1" />
+    <PackageReference Include="Mono.Data.Sqlite" Version="1.0.61" />
+    <PackageReference Include="System.CodeDom" Version="5.0.0" />
   </ItemGroup>
 </Project>
