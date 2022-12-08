@@ -28,7 +28,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="NDesk.Options" Version="0.2.1" />
     <PackageReference Include="Mono.Data.Sqlite" Version="1.0.61" />
     <PackageReference Include="System.CodeDom" Version="5.0.0" />
